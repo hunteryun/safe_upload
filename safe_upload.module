@@ -5,11 +5,11 @@ use Rundiz\Upload\Upload;
 /**
  * safe upload with validate.
  */
-function hunter_safe_upload($field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png')) {
+function hunter_safe_upload($module, $field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png')) {
   $result = array();
   $msg = '';
   $Upload = new Upload($field_name);
-  $move_dir = 'sites/upload/'.$field_name.'/';
+  $move_dir = 'sites/upload/'.$module.'/'.$field_name.'/';
   $Upload->move_uploaded_to = $move_dir;
   if (!is_dir($move_dir)){
     mkdir($move_dir, 0755, true);
