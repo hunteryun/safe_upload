@@ -21,11 +21,47 @@ class UploadController {
    */
   public function safe_upload(ServerRequest $request) {
     $result = false;
+    $allowed_file = array();
     $uploadedFiles = $request->getUploadedFiles();
+    $parms = $request->getParsedBody();
+    if(empty($parms) || !isset($parms['accept']) || !isset($parms['exts'])){
+        return new JsonResponse($result);
+    }
+
+    switch ($parms['accept'])
+    {
+    case 'images':
+      if(!empty(array_diff(explode('|', $parms['exts']), array('jpg','png','gif','bmp','jpeg')))){
+        return new JsonResponse($result);
+      }
+      $allowed_file = explode('|', $parms['exts']);
+      break;
+    case 'file':
+      if(!empty(array_diff(explode('|', $parms['exts']), array('doc','pdf','txt','xls','zip','rar','7z','tif','obj','pmd','vmd')))){
+        return new JsonResponse($result);
+      }
+      $allowed_file = explode('|', $parms['exts']);
+      break;
+    case 'video':
+      if(!empty(array_diff(explode('|', $parms['exts']), array('rm','rmvb','wmv','avi','mp4','3gp','mkv')))){
+        return new JsonResponse($result);
+      }
+      $allowed_file = explode('|', $parms['exts']);
+      break;
+    case 'audio':
+      if(!empty(array_diff(explode('|', $parms['exts']), array('wav','mp3','ogg','wma','aac')))){
+        return new JsonResponse($result);
+      }
+      $allowed_file = explode('|', $parms['exts']);
+      break;
+    default:
+      return new JsonResponse($result);
+    }
+
     if (!empty($uploadedFiles)) {
       foreach ($uploadedFiles as $key => $value) {
         if ($value instanceof UploadedFileInterface) {
-          $result = $this->safe_upload_file($key, $value);
+          $result = $this->safe_upload_file($key, $value, $allowed_file);
         }
       }
     }
@@ -59,7 +95,7 @@ class UploadController {
     // Allowed for gif, jpg, png
     $Upload->allowed_file_extensions = $allowed_file;
     // Max file size is 900KB.
-    $Upload->max_file_size = 900000;
+    //$Upload->max_file_size = 900000;
     // You can name the uploaded file to new name or leave this to use its default name. Do not included extension into it.
     $Upload->new_file_name = hunter_rename($value->getClientFilename());
     // Overwrite existing file? true = yes, false = no
