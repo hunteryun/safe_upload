@@ -82,7 +82,7 @@ class UploadController {
         }
 
         $uploaded_data[0]['full_path_new_name'] = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
-        $uploaded_data[0]['src'] = base_path().$move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
+        $uploaded_data[0]['src'] = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
     }
 
     if ($upload_result === true) {
