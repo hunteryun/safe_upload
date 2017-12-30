@@ -39,6 +39,7 @@ class UploadController {
    *   Return safe_upload string.
    */
   private function safe_upload_file($field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png')) {
+    global $auto_image_compress;
     $module = '';
     if(empty($module)) {
       $module = substr($field_name,0,strpos($field_name,'-'));
@@ -76,6 +77,10 @@ class UploadController {
     $uploaded_data = $Upload->getUploadedData();
 
     if (is_array($uploaded_data) && !empty($uploaded_data)) {
+        if(module_exists('image_compress') && $auto_image_compress['enable']){
+          hunter_compress_image($move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'], $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'], $auto_image_compress['quality']);
+        }
+
         $uploaded_data[0]['full_path_new_name'] = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
         $uploaded_data[0]['src'] = base_path().$move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
     }

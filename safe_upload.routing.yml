@@ -5,4 +5,3 @@ safe_upload.upload_safe_upload:
     _title: 'Safe Upload'
   requirements:
     _permission: 'access admin page'
-  
