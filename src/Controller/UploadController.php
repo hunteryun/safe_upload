@@ -21,34 +21,51 @@ class UploadController {
    */
   public function safe_upload(ServerRequest $request) {
     $result = false;
+    $notvalidate = false;
     $allowed_file = array();
     $uploadedFiles = $request->getUploadedFiles();
     $parms = $request->getParsedBody();
-    if(empty($parms) || !isset($parms['accept']) || !isset($parms['exts'])){
-        return new JsonResponse($result);
+
+    if(!isset($parms['accept']) || empty($parms['accept'])) {
+      $parms['accept'] = 'images';
+    }
+    if(isset($parms['notvalidate']) && $parms['notvalidate'] == 'yes') {
+      $notvalidate = TRUE;
     }
 
     switch ($parms['accept'])
     {
     case 'images':
-      if(!empty(array_diff(explode('|', $parms['exts']), array('jpg','png','gif','bmp','jpeg')))){
+      if(!isset($parms['exts']) || empty($parms['exts'])){
+        $parms['exts'] = 'jpg|png|gif|bmp|jpeg';
+      }
+      if(!empty(array_diff(explode('|', $parms['exts']), array('jpg','png','gif','bmp','jpeg','tif')))){
         return new JsonResponse($result);
       }
       $allowed_file = explode('|', $parms['exts']);
       break;
     case 'file':
-      if(!empty(array_diff(explode('|', $parms['exts']), array('doc','pdf','txt','xls','zip','rar','7z','tif','obj','pmd','vmd')))){
+      if(!isset($parms['exts']) || empty($parms['exts'])){
+        $parms['exts'] = 'doc|pdf|txt|xls|zip|rar';
+      }
+      if(!empty(array_diff(explode('|', $parms['exts']), array('doc','pdf','txt','xls','zip','rar','7z','obj','pmd','vmd','mp3','mp4','jpg','gif','bmp','xml','dat')))){
         return new JsonResponse($result);
       }
       $allowed_file = explode('|', $parms['exts']);
       break;
     case 'video':
-      if(!empty(array_diff(explode('|', $parms['exts']), array('rm','rmvb','wmv','avi','mp4','3gp','mkv')))){
+      if(!isset($parms['exts']) || empty($parms['exts'])){
+        $parms['exts'] = 'mp4|flv|mpg|3gp';
+      }
+      if(!empty(array_diff(explode('|', $parms['exts']), array('rm','rmvb','wmv','avi','mp4','3gp','mkv','flv','mpg')))){
         return new JsonResponse($result);
       }
       $allowed_file = explode('|', $parms['exts']);
       break;
     case 'audio':
+      if(!isset($parms['exts']) || empty($parms['exts'])){
+        $parms['exts'] = 'mp3|wma|wav';
+      }
       if(!empty(array_diff(explode('|', $parms['exts']), array('wav','mp3','ogg','wma','aac')))){
         return new JsonResponse($result);
       }
@@ -61,7 +78,7 @@ class UploadController {
     if (!empty($uploadedFiles)) {
       foreach ($uploadedFiles as $key => $value) {
         if ($value instanceof UploadedFileInterface) {
-          $result = $this->safe_upload_file($key, $value, $allowed_file);
+          $result = $this->safe_upload_file($key, $value, $allowed_file, $notvalidate);
         }
       }
     }
@@ -74,7 +91,7 @@ class UploadController {
    * @return string
    *   Return safe_upload string.
    */
-  private function safe_upload_file($field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png')) {
+  private function safe_upload_file($field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png'), $notvalidate = FALSE) {
     global $auto_image_compress;
     $module = '';
     if(empty($module)) {
@@ -107,6 +124,10 @@ class UploadController {
     // If you upload multiple files, do you want it to be stopped if error occur? (Set to false will skip the error files).
     $Upload->stop_on_failed_upload_multiple = false;
 
+    if($notvalidate){
+      $Upload->file_extensions_mime_types = array();
+    }
+
     // Begins upload
     $upload_result = $Upload->upload();
     // Get the uploaded file's data.
@@ -130,7 +151,7 @@ class UploadController {
     if (is_array($Upload->error_messages) && !empty($Upload->error_messages)) {
         $code = 1;
         foreach ($Upload->error_messages as $error_message) {
-            $msg .= '<p>'.$error_message.'</p>'."\n";
+            $msg .= $error_message."\n";
         }
     }
 
