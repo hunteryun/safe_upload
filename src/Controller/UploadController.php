@@ -6,6 +6,7 @@ use Zend\Diactoros\ServerRequest;
 use Psr\Http\Message\UploadedFileInterface;
 use Zend\Diactoros\Response\JsonResponse;
 use Rundiz\Upload\Upload;
+use Thumbnailr\Thumbnailr;
 
 /**
  * Class Upload.
@@ -102,12 +103,17 @@ class UploadController {
     $msg = '';
     $Upload = new Upload($field_name);
     $move_dir = 'sites/upload/'.$field_name.'/';
+    $thumb_move_dir = 'sites/thumb/'.$field_name.'/';
     if(!empty($module) && module_exists($module)){
       $move_dir = 'sites/upload/'.$module.'/'.str_replace("$module-","",$field_name).'/';
+      $thumb_move_dir = 'sites/thumb/'.$module.'/'.str_replace("$module-","",$field_name).'/';
     }
     $Upload->move_uploaded_to = $move_dir;
     if (!is_dir($move_dir)){
       mkdir($move_dir, 0755, true);
+    }
+    if (!is_dir($thumb_move_dir)){
+      mkdir($thumb_move_dir, 0755, true);
     }
     // Allowed for gif, jpg, png
     $Upload->allowed_file_extensions = $allowed_file;
@@ -134,12 +140,20 @@ class UploadController {
     $uploaded_data = $Upload->getUploadedData();
 
     if (is_array($uploaded_data) && !empty($uploaded_data)) {
-        if(module_exists('image_compress') && $auto_image_compress['enable']){
-          hunter_compress_image($move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'], $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'], $auto_image_compress['quality']);
+        $url = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
+        if(in_array(strtolower($uploaded_data[0]['extension']), array('jpg','jpeg','png'))){
+          $thumburl = $thumb_move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
+          $thumbnailr = new Thumbnailr($url);
+          $thumbnailr->buildThumbnail('70', '70');
+          $thumbnailr->toJpegFile($thumburl);
+
+          if(module_exists('image_compress') && $auto_image_compress['enable']){
+            hunter_compress_image($url, $url, $auto_image_compress['quality']);
+          }
         }
 
-        $uploaded_data[0]['full_path_new_name'] = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
-        $uploaded_data[0]['src'] = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
+        $uploaded_data[0]['full_path_new_name'] = base_path().$url;
+        $uploaded_data[0]['src'] = base_path().$url;
     }
 
     if ($upload_result === true) {
