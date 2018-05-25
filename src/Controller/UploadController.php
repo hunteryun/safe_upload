@@ -78,7 +78,7 @@ class UploadController {
 
     if (!empty($uploadedFiles)) {
       foreach ($uploadedFiles as $key => $value) {
-        if ($value instanceof UploadedFileInterface) {
+        if ($value instanceof UploadedFileInterface || is_array($value)) {
           $result = $this->safe_upload_file($key, $value, $allowed_file, $notvalidate);
         }
       }
@@ -120,7 +120,7 @@ class UploadController {
     // Max file size is 900KB.
     //$Upload->max_file_size = 900000;
     // You can name the uploaded file to new name or leave this to use its default name. Do not included extension into it.
-    $Upload->new_file_name = hunter_rename($value->getClientFilename());
+    $Upload->new_file_name = is_array($value) ? 'new_'.$field_name : hunter_rename($value->getClientFilename());
     // Overwrite existing file? true = yes, false = no
     $Upload->overwrite = false;
     // Web safe file name is English, number, dash, underscore.
@@ -140,8 +140,9 @@ class UploadController {
     $uploaded_data = $Upload->getUploadedData();
 
     if (is_array($uploaded_data) && !empty($uploaded_data)) {
-        $url = $move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
-        if(in_array(strtolower($uploaded_data[0]['extension']), array('jpg','jpeg','png'))){
+      foreach ($uploaded_data as $key => $item) {
+        $url = $move_dir.$uploaded_data[$key]['new_name'];
+        if(in_array(strtolower($uploaded_data[$key]['extension']), array('jpg','jpeg','png'))){
           $thumburl = $thumb_move_dir.$Upload->new_file_name.'.'.$uploaded_data[0]['extension'];
           $thumbnailr = new Thumbnailr($url);
           $thumbnailr->buildThumbnail('70', '70');
@@ -152,8 +153,9 @@ class UploadController {
           }
         }
 
-        $uploaded_data[0]['full_path_new_name'] = base_path().$url;
-        $uploaded_data[0]['src'] = base_path().$url;
+        $uploaded_data[$key]['full_path_new_name'] = base_path().$url;
+        $uploaded_data[$key]['src'] = base_path().$url;
+      }
     }
 
     if ($upload_result === true) {
