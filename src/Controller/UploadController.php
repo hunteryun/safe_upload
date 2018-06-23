@@ -26,6 +26,7 @@ class UploadController {
     $allowed_file = array();
     $uploadedFiles = $request->getUploadedFiles();
     $parms = $request->getParsedBody();
+    $query_parms = $request->getQueryParams();
 
     if(!isset($parms['accept']) || empty($parms['accept'])) {
       $parms['accept'] = 'images';
@@ -79,7 +80,7 @@ class UploadController {
     if (!empty($uploadedFiles)) {
       foreach ($uploadedFiles as $key => $value) {
         if ($value instanceof UploadedFileInterface || is_array($value)) {
-          $result = $this->safe_upload_file($key, $value, $allowed_file, $notvalidate);
+          $result = $this->safe_upload_file($key, $value, $allowed_file, $notvalidate, $query_parms);
         }
       }
     }
@@ -92,8 +93,8 @@ class UploadController {
    * @return string
    *   Return safe_upload string.
    */
-  private function safe_upload_file($field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png'), $notvalidate = FALSE) {
-    global $auto_image_compress;
+  private function safe_upload_file($field_name, $value, $allowed_file = array('gif', 'jpg', 'jpeg', 'png'), $notvalidate = FALSE, $query_parms = array()) {
+    global $auto_image_compress, $base_url;
     $module = '';
     if(empty($module)) {
       $module = substr($field_name,0,strpos($field_name,'-'));
@@ -155,6 +156,10 @@ class UploadController {
 
         $uploaded_data[$key]['full_path_new_name'] = base_path().$url;
         $uploaded_data[$key]['src'] = base_path().$url;
+        $uploaded_data[$key]['base_url'] = $base_url;
+        if(isset($query_parms['fullpath']) && ($query_parms['fullpath'] == 'yes' || $query_parms['fullpath'] == 'true')){
+          $uploaded_data[$key]['src'] = $base_url.$uploaded_data[$key]['src'];
+        }
       }
     }
 
