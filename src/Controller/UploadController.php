@@ -149,8 +149,10 @@ class UploadController {
           $thumbnailr->buildThumbnail('70', '70');
           $thumbnailr->toJpegFile($thumburl);
 
-          if(module_exists('image_compress') && $auto_image_compress['enable']){
-            hunter_compress_image($url, $url, $auto_image_compress['quality']);
+          if(isset($query_parms['compress']) && ($query_parms['compress'] == 'yes' || $query_parms['fullpath'] == 'true')){
+            if(module_exists('image_compress') && $auto_image_compress['enable']){
+              hunter_compress_image($url, $url, $auto_image_compress['quality']);
+            }
           }
         }
 
