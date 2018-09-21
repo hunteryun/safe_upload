@@ -69,6 +69,9 @@ accept 是指上传的文件类型，支持file,images,video,audio, 默认不传
 exts   是指支持的文件类型后缀，如果指定了则只支持指定的类型，如果没有传这个参数，则会根据accept类型支持默认文件类型，分别是：
 
 images：jpg|png|gif|bmp|jpeg
+
 file: doc|pdf|txt|xls|zip|rar
+
 video: mp4|flv|mpg|3gp
+
 audio: mp3|wma|wav
