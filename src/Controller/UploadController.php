@@ -146,6 +146,8 @@ class UploadController {
       $thumb_group['thumb']['thumb_move_dir'] = 'sites/thumb/'.$field_name.'/';
       $thumb_group['thumb']['width'] = '90';
       $thumb_group['thumb']['height'] = '90';
+      $thumb_group['thumb']['method'] = 'resize';
+      $thumb_group['thumb']['background'] = '#FFFFFF';
       if (!is_dir($thumb_group['thumb']['thumb_move_dir'])){
         mkdir($thumb_group['thumb']['thumb_move_dir'], 0755, true);
       }
